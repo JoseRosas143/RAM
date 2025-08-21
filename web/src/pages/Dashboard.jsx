@@ -1,33 +1,41 @@
-import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+// src/pages/Dashboard.jsx
+import React from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth, db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-  const [pets, setPets] = useState([]);
+  const [user, loading] = useAuthState(auth);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    const q = query(collection(db, 'pets'), where('ownerId', '==', uid));
-    const unsub = onSnapshot(q, (snap) => {
-      setPets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    return () => unsub();
-  }, []);
+  if (loading) return null;          // 🔒 Espera estado real
+  if (!user)  return navigate("/");  // <-- o renderiza <Login>
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = {
+      name: form.name.value,
+      microchip: form.microchip.value,
+      // … resto de campos …
+      ownerId: user.uid,
+      createdAt: Date.now(),
+    };
+    await setDoc(doc(db, "pets", data.microchip), data);
+    navigate(`/pet/${data.microchip}`);
+  }
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-semibold">Mis mascotas</h2>
-      <ul className="mt-4 grid gap-3">
-        {pets.map(p => (
-          <li key={p.id} className="border rounded p-3">
-            <div className="font-medium">{p.name}</div>
-            <div className="text-sm text-gray-600">Microchip: {p.microchip}</div>
-            <a className="text-indigo-600 text-sm" href={`/r/${p.microchip}`}>Ver perfil público</a>
-          </li>
-        ))}
-      </ul>
-      {pets.length === 0 && <div className="text-gray-600 mt-4">Aún no tienes mascotas. Crea la primera.</div>}
-    </div>
+    <section>
+      <h1>Mis mascotas</h1>
+
+      <form onSubmit={handleCreate} className="flex flex-col gap-3 max-w-sm">
+        <input name="name"       placeholder="Nombre"         required />
+        <input name="microchip"  placeholder="Microchip"      required />
+        {/* especie, sexo, fecha, color, señas, etc. */}
+        <button className="btn-primary">Crear</button>
+      </form>
+    </section>
   );
 }

@@ -1,0 +1,39 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+  phoneNumber: String
+  location: String
+}
+
+type Pet @table {
+  owner: User!
+  name: String!
+  species: String!
+  breed: String!
+  createdAt: Timestamp!
+  isLost: Boolean!
+  age: Int
+  description: String
+  photoUrl: String
+  lastSeenLocation: String
+  lastSeenTime: Timestamp
+}
+
+type LostReport @table {
+  pet: Pet!
+  reporter: User!
+  reportDate: Timestamp!
+  lastKnownLocation: String!
+  isFound: Boolean!
+  notes: String
+  foundDate: Timestamp
+  foundLocation: String
+}
+
+type Breed @table {
+  name: String!
+  species: String!
+  description: String
+}

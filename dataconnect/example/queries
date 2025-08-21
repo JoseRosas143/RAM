@@ -1,0 +1,65 @@
+mutation CreatePet($name: String!, $species: String!, $breed: String!, $age: Int, $description: String, $lastSeenLocation: String, $lastSeenTime: Timestamp, $photoUrl: String, $isLost: Boolean!) @auth(level: USER) {
+  pet_insert(data: {
+    name: $name,
+    species: $species,
+    breed: $breed,
+    age: $age,
+    description: $description,
+    lastSeenLocation: $lastSeenLocation,
+    lastSeenTime: $lastSeenTime,
+    photoUrl: $photoUrl,
+    isLost: $isLost,
+    ownerId_expr: "auth.uid"
+  })
+}
+
+query GetPet($id: UUID!) @auth(level: USER) {
+  pet(id: $id) {
+    id
+    name
+    species
+    breed
+    age
+    description
+    lastSeenLocation
+    lastSeenTime
+    photoUrl
+    isLost
+    owner {
+      id
+      displayName
+      email
+      phoneNumber
+      photoUrl
+    }
+  }
+}
+
+mutation UpdatePet($id: UUID!, $name: String, $species: String, $breed: String, $age: Int, $description: String, $lastSeenLocation: String, $lastSeenTime: Timestamp, $photoUrl: String, $isLost: Boolean) @auth(level: USER) {
+  pet_update(id: $id, data: {
+    name: $name,
+    species: $species,
+    breed: $breed,
+    age: $age,
+    description: $description,
+    lastSeenLocation: $lastSeenLocation,
+    lastSeenTime: $lastSeenTime,
+    photoUrl: $photoUrl,
+    isLost: $isLost
+  })
+}
+
+query ListPets @auth(level: PUBLIC) {
+  pets {
+    id
+    name
+    species
+    breed
+    age
+    description
+    isLost
+    lastSeenLocation
+    lastSeenTime
+    photoUrl
+  }
+}

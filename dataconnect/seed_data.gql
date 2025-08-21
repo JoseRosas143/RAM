@@ -1,0 +1,19 @@
+mutation SeedDatabase @auth(level: USER) {
+  breed_insertMany(data: [
+    {
+      name: "Labrador Retriever",
+      species: "Dog",
+      description: "Friendly and energetic."
+    },
+    {
+      name: "Siamese",
+      species: "Cat",
+      description: "Intelligent and affectionate."
+    },
+    {
+      name: "German Shepherd",
+      species: "Dog",
+      description: "Loyal and protective."
+    }
+  ])
+}
