@@ -1,44 +1,34 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
-import Dashboard from './pages/Dashboard';
-import PremiumPage from './pages/PremiumPage';
-import VetsPage from './pages/Vets';
-import VetRegister from './pages/VetRegister';
-import BuyPage from './pages/Buy';
-import BuySuccessPage from './pages/BuySuccess';
-import BuyCancelPage from './pages/BuyCancel';
-import PetRescuePage from './pages/PetRescue';
-import ChatBot from './pages/premium/ChatBot';
-import DietForm from './pages/premium/DietForm';
-import FamilyTree from './pages/premium/FamilyTree';
-import PremiumThanksPage from './pages/PremiumThanks';
+import React, { Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthGate } from './auth/AuthGate.jsx';     // ver abajo
+import Home from './pages/Home.jsx';                 // landing con hero
+import Dashboard from './pages/Dashboard.jsx';       // panel tutor
+import Vets from './pages/Vets.jsx';                 // directorio
+import Buy from './pages/Buy.jsx';                   // tienda Stripe
+import Premium from './pages/Premium.jsx';           // premium hub
+import Rescue from './pages/rescue.jsx';             // /r/:microchip
 
-const App = () => {
+export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/app" element={<Dashboard />} />
-      <Route path="/vets" element={<VetsPage />} />
-      {/* Page for clinics to register themselves */}
-      <Route path="/register-vet" element={<VetRegister />} />
-      {/* Shop routes for purchasing products and handling Stripe responses */}
-      <Route path="/buy" element={<BuyPage />} />
-      <Route path="/buy/success" element={<BuySuccessPage />} />
-      <Route path="/buy/cancel" element={<BuyCancelPage />} />
-      {/* Public rescue profile by microchip */}
-      <Route path="/r/:microchip" element={<PetRescuePage />} />
-      {/* Premium route with nested routes */}
-      <Route path="/premium" element={<PremiumPage />}>
-        <Route path="chat" element={<ChatBot />} />
-        <Route path="diet" element={<DietForm />} />
-        <Route path="family" element={<FamilyTree />} />
-      </Route>
-      {/* Success page for premium subscription */}
-      <Route path="/premium/thanks" element={<PremiumThanksPage />} />
-      {/* TODO: define other routes like /r/:microchip, /buy, etc. */}
-    </Routes>
+    <BrowserRouter>
+      <Suspense fallback={<div className="p-6">Cargando…</div>}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route
+            path="/app/*"
+            element={
+              <AuthGate>
+                <Dashboard />
+              </AuthGate>
+            }
+          />
+          <Route path="/vets" element={<Vets />} />
+          <Route path="/buy" element={<Buy />} />
+          <Route path="/premium/*" element={<Premium />} />
+          <Route path="/r/:microchip" element={<Rescue />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
   );
-};
-
-export default App;
+}

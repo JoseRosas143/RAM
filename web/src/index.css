@@ -1,3 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* (opcional) tu css global */
+:root { color-scheme: light; }
