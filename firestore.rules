@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    function isTutor(resource) {
+      return isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /settings/app {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid || isAdmin();
+      allow write: if request.auth.uid == uid || isAdmin();
+    }
+
+    match /pets/{petId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isTutor(resource) || isAdmin();
+    }
+
+    match /clinics/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Premium family trees
+    match /familyTrees/{treeId} {
+      allow read, write: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.plan == 'premium';
+    }
+  }
+}
