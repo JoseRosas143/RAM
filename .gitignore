@@ -1,0 +1,7 @@
+node_modules/
+web/node_modules/
+functions/node_modules/
+.firebase/
+.idx/
+web/dist/
+web-functional.zip
