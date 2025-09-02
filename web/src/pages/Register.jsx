@@ -1,18 +1,42 @@
-import { useState } from "react";
-import { auth } from "../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-export default function Register() {
-  const [email, setEmail] = useState(""); const [pass, setPass] = useState(""); const navigate = useNavigate();
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { registerWithEmail } from '../services/auth';
+
+const Register = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    try {
+      await registerWithEmail(email, password);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Failed to register', error);
+    }
+  };
+
   return (
-    <div className="register-container">
-      <h2>Registro</h2>
-      <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Correo"/>
-      <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Contraseña"/>
-      <button onClick={async ()=>{
-        try { await createUserWithEmailAndPassword(auth, email, pass); navigate("/dashboard"); } 
-        catch (e) { alert("Error: " + e.message); }
-      }}>Registrarse</button>
+    <div>
+      <h2>Register</h2>
+      <form onSubmit={handleRegister}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">Register</button>
+      </form>
     </div>
   );
-}
+};
+
+export default Register;

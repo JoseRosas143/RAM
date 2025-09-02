@@ -222,3 +222,75 @@ exports.notifyLost = functions.https.onRequest(async (req, res) => {
     }
   });
 });
+
+exports.addPet = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Debe iniciar sesión");
+  }
+
+  const { name, breed, age, microchip, photoURL } = data;
+  const ownerId = context.auth.uid;
+
+  try {
+    const petRef = await db.collection("pets").add({
+      name,
+      breed,
+      age,
+      microchip,
+      photoURL,
+      ownerId,
+    });
+    return { id: petRef.id };
+  } catch (error) {
+    console.error("Error adding pet", error);
+    throw new functions.https.HttpsError("internal", "Error al agregar la mascota");
+  }
+});
+
+exports.updatePet = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Debe iniciar sesión");
+  }
+
+  const { id, ...petData } = data;
+  const ownerId = context.auth.uid;
+
+  const petRef = db.collection("pets").doc(id);
+  const petDoc = await petRef.get();
+
+  if (!petDoc.exists || petDoc.data().ownerId !== ownerId) {
+    throw new functions.https.HttpsError("permission-denied", "No tiene permiso para actualizar esta mascota");
+  }
+
+  try {
+    await petRef.update(petData);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating pet", error);
+    throw new functions.https.HttpsError("internal", "Error al actualizar la mascota");
+  }
+});
+
+exports.deletePet = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Debe iniciar sesión");
+  }
+
+  const { id } = data;
+  const ownerId = context.auth.uid;
+
+  const petRef = db.collection("pets").doc(id);
+  const petDoc = await petRef.get();
+
+  if (!petDoc.exists || petDoc.data().ownerId !== ownerId) {
+    throw new functions.https.HttpsError("permission-denied", "No tiene permiso para eliminar esta mascota");
+  }
+
+  try {
+    await petRef.delete();
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting pet", error);
+    throw new functions.https.HttpsError("internal", "Error al eliminar la mascota");
+  }
+});

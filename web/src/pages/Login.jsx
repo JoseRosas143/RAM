@@ -1,18 +1,62 @@
-import { useState } from "react";
-import { auth } from "../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-export default function Login() {
-  const [email, setEmail] = useState(""); const [pass, setPass] = useState(""); const navigate = useNavigate();
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { loginWithEmail, loginWithGoogle, loginWithApple } from '../services/auth';
+
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await loginWithEmail(email, password);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Failed to log in', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Failed to log in with Google', error);
+    }
+  };
+
+  const handleAppleLogin = async () => {
+    try {
+      await loginWithApple();
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Failed to log in with Apple', error);
+    }
+  };
+
   return (
-    <div className="login-container">
-      <h2>Iniciar sesión</h2>
-      <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Correo"/>
-      <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Contraseña"/>
-      <button onClick={async ()=>{
-        try { await signInWithEmailAndPassword(auth, email, pass); navigate("/dashboard"); } 
-        catch (e) { alert("Error: " + e.message); }
-      }}>Ingresar</button>
+    <div>
+      <h2>Login</h2>
+      <form onSubmit={handleEmailLogin}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">Login with Email</button>
+      </form>
+      <button onClick={handleGoogleLogin}>Login with Google</button>
+      <button onClick={handleAppleLogin}>Login with Apple</button>
     </div>
   );
-}
+};
+
+export default Login;

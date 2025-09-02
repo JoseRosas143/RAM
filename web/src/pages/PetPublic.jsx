@@ -1,37 +1,43 @@
-import React, { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { db } from '../firebase'
-import { doc, getDoc } from 'firebase/firestore'
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
-export default function PetPublic() {
-  const { petId } = useParams()
-  const [pet, setPet] = useState(null)
-  const [loading, setLoading] = useState(true)
+const PetPublic = () => {
+  const { petId } = useParams();
+  const [pet, setPet] = useState(null);
+  const [owner, setOwner] = useState(null);
 
   useEffect(() => {
-    (async () => {
-      const snap = await getDoc(doc(db, 'pets', petId))
-      if (snap.exists()) setPet({ id: snap.id, ...snap.data() })
-      setLoading(false)
-    })()
-  }, [petId])
+    const fetchPet = async () => {
+      const petDoc = await getDoc(doc(db, 'pets', petId));
+      if (petDoc.exists()) {
+        const petData = petDoc.data();
+        setPet(petData);
+        const ownerDoc = await getDoc(doc(db, 'users', petData.ownerId));
+        if (ownerDoc.exists()) {
+          setOwner(ownerDoc.data());
+        }
+      }
+    };
+    fetchPet();
+  }, [petId]);
 
-  if (loading) return <div style={{padding:24}}>Cargando…</div>
-  if (!pet) return <div style={{padding:24}}>Mascota no encontrada.</div>
+  if (!pet) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div style={{padding:24, color:'#eee'}}>
-      <h1>{pet.name}</h1>
-      {pet.photoUrl && <img src={pet.photoUrl} alt="" style={{width:240, borderRadius:12}}/>}
-      <p>Especie: {pet.species}</p>
-      <p>Estado: {pet.lost ? '🚨 Reportada como perdida' : '✔️ En casa'}</p>
-
-      {/** Puedes guardar en el doc del usuario teléfono o email para mostrar aquí */}
-      <p>Si encontraste a {pet.name}, por favor contacta al dueño mediante la plataforma.</p>
-
-      <p style={{marginTop:16}}>
-        <Link to="/">Ir a RegistroAnimalMX</Link>
-      </p>
+    <div>
+      <h2>{pet.name}</h2>
+      {pet.photoURL && <img src={pet.photoURL} alt={pet.name} style={{ width: '200px' }} />}
+      <p>Breed: {pet.breed}</p>
+      <p>Age: {pet.age}</p>
+      {owner && (
+        <a href={`https://wa.me/${owner.phone}`}>Contact Owner</a>
+      )}
     </div>
-  )
-}
+  );
+};
+
+export default PetPublic;

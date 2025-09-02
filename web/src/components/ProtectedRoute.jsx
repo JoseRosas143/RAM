@@ -1,13 +1,15 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
-export default function ProtectedRoute({ children }) {
-  const navigate = useNavigate();
-  useEffect(() => {
-    const unsub = auth.onAuthStateChanged(user => {
-      if (!user) navigate("/login");
-    });
-    return () => unsub();
-  }, [navigate]);
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+
+const ProtectedRoute = ({ children }) => {
+  const { currentUser } = useAuth();
+
+  if (!currentUser) {
+    return <Navigate to="/login" />;
+  }
+
   return children;
-}
+};
+
+export default ProtectedRoute;
